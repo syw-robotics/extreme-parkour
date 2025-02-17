@@ -199,7 +199,7 @@ class LeggedRobotCfg(BaseConfig):
         num_goals = 8
 
     class commands:
-        curriculum = False
+        curriculum = False  # Velocity command curriculum is not used in the extreme psrkour repo.
         max_curriculum = 1.
         num_commands = 4 # default: lin_vel_x, lin_vel_y, ang_vel_yaw, heading (in heading mode ang_vel_yaw is recomputed from heading error)
         resampling_time = 6. # time before command are changed[s]
@@ -207,21 +207,21 @@ class LeggedRobotCfg(BaseConfig):
         
         lin_vel_clip = 0.2
         ang_vel_clip = 0.4
-        # Easy ranges
+        # Easy ranges, only x direction
         class ranges:
             lin_vel_x = [0., 1.5] # min max [m/s]
             lin_vel_y = [0.0, 0.0]   # min max [m/s]
             ang_vel_yaw = [0, 0]    # min max [rad/s]
             heading = [0, 0]
 
-        # Easy ranges
+        # Hard ranges, x, y and heading
         class max_ranges:
-            lin_vel_x = [0.3, 0.8] # min max [m/s]
-            lin_vel_y = [-0.3, 0.3]#[0.15, 0.6]   # min max [m/s]
+            lin_vel_x = [0.3, 0.8]  # min max [m/s]
+            lin_vel_y = [-0.3, 0.3]  #[0.15, 0.6]   # min max [m/s]
             ang_vel_yaw = [-0, 0]    # min max [rad/s]
             heading = [-1.6, 1.6]
 
-        class crclm_incremnt:
+        class crclm_incremnt:  # Not used when cfg.commands.curriculum = False
             lin_vel_x = 0.1 # min max [m/s]
             lin_vel_y = 0.1  # min max [m/s]
             ang_vel_yaw = 0.1    # min max [rad/s]
