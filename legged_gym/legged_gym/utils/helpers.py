@@ -199,7 +199,7 @@ def get_args():
         {"name": "--rows", "type": int, "help": "num_rows."},
         {"name": "--cols", "type": int, "help": "num_cols"},
         {"name": "--debug", "action": "store_true", "default": False, "help": "Disable wandb logging"},
-        {"name": "--proj_name", "type": str,  "default": "parkour_new", "help": "run folder name."},
+        {"name": "--proj_name", "type": str,  "default": "extreme_parkour", "help": "run folder name."},
         
         {"name": "--teacher", "type": str, "help": "Name of the teacher policy to use when distilling"},
         {"name": "--exptid", "type": str, "help": "exptid"},

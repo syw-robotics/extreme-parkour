@@ -67,7 +67,7 @@ class HardwareVisionNN(nn.Module):
         # return obs, depth_latent
 
 def play(args):    
-    load_run = "../../logs/parkour_new/" + args.exptid
+    load_run = "../../logs/extreme_parkour/" + args.exptid
     checkpoint = args.checkpoint
 
     n_priv_explicit = 3 + 3 + 3
