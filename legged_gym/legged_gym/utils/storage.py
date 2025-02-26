@@ -1,6 +1,7 @@
 import torch
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
 
+
 class ObsStorage:
     def __init__(self, num_envs, num_transitions_per_env, obs_shape, action_shape, device):
         self.device = device
@@ -38,8 +39,12 @@ class ObsStorage:
         mini_batch_size = batch_size // num_mini_batches
 
         for batch_id in range(num_mini_batches):
-            yield self.obs.view(-1, *self.obs.size()[2:])[batch_id*mini_batch_size:(batch_id+1)*mini_batch_size], \
-                self.expert.view(-1, *self.expert.size()[2:])[batch_id*mini_batch_size:(batch_id+1)*mini_batch_size]
+            yield self.obs.view(-1, *self.obs.size()[2:])[
+                batch_id * mini_batch_size : (batch_id + 1) * mini_batch_size
+            ], self.expert.view(-1, *self.expert.size()[2:])[
+                batch_id * mini_batch_size : (batch_id + 1) * mini_batch_size
+            ]
+
 
 class RolloutStorage:
     def __init__(self, num_envs, num_transitions_per_env, actor_obs_shape, critic_obs_shape, actions_shape, device):
@@ -117,10 +122,28 @@ class RolloutStorage:
         mini_batch_size = batch_size // num_mini_batches
 
         for batch_id in range(num_mini_batches):
-            yield self.actor_obs.view(-1, *self.actor_obs.size()[2:])[batch_id*mini_batch_size:(batch_id+1)*mini_batch_size], \
-                self.critic_obs.view(-1, *self.critic_obs.size()[2:])[batch_id*mini_batch_size:(batch_id+1)*mini_batch_size], \
-                self.actions.view(-1, self.actions.size(-1))[batch_id*mini_batch_size:(batch_id+1)*mini_batch_size], \
-                self.values.view(-1, 1)[batch_id*mini_batch_size:(batch_id+1)*mini_batch_size], \
-                self.advantages.view(-1, 1)[batch_id*mini_batch_size:(batch_id+1)*mini_batch_size], \
-                self.returns.view(-1, 1)[batch_id*mini_batch_size:(batch_id+1)*mini_batch_size], \
-                self.actions_log_prob.view(-1, 1)[batch_id*mini_batch_size:(batch_id+1)*mini_batch_size]
+            yield self.actor_obs.view(-1, *self.actor_obs.size()[2:])[
+                batch_id * mini_batch_size : (batch_id + 1) * mini_batch_size
+            ], self.critic_obs.view(-1, *self.critic_obs.size()[2:])[
+                batch_id * mini_batch_size : (batch_id + 1) * mini_batch_size
+            ], self.actions.view(
+                -1, self.actions.size(-1)
+            )[
+                batch_id * mini_batch_size : (batch_id + 1) * mini_batch_size
+            ], self.values.view(
+                -1, 1
+            )[
+                batch_id * mini_batch_size : (batch_id + 1) * mini_batch_size
+            ], self.advantages.view(
+                -1, 1
+            )[
+                batch_id * mini_batch_size : (batch_id + 1) * mini_batch_size
+            ], self.returns.view(
+                -1, 1
+            )[
+                batch_id * mini_batch_size : (batch_id + 1) * mini_batch_size
+            ], self.actions_log_prob.view(
+                -1, 1
+            )[
+                batch_id * mini_batch_size : (batch_id + 1) * mini_batch_size
+            ]
