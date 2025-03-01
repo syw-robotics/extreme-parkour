@@ -72,7 +72,11 @@ class OnPolicyRunner:
             self.env.num_actions,
             **self.policy_cfg,
         ).to(self.device)
-        estimator = Estimator(input_dim=env.cfg.env.n_proprio, output_dim=env.cfg.env.n_priv, hidden_dims=self.estimator_cfg["hidden_dims"]).to(self.device)
+        estimator = Estimator(
+            input_dim=env.cfg.env.n_proprio,
+            output_dim=env.cfg.env.n_priv,
+            hidden_dims=self.estimator_cfg["hidden_dims"],
+        ).to(self.device)
         # Depth encoder
         self.if_depth = self.depth_encoder_cfg["if_depth"]
         if self.if_depth:
@@ -92,7 +96,16 @@ class OnPolicyRunner:
         # self.depth_encoder_criterion = nn.MSELoss()
         # Create algorithm
         alg_class = eval(self.cfg["algorithm_class_name"])  # PPO
-        self.alg: PPO = alg_class(actor_critic, estimator, self.estimator_cfg, depth_encoder, self.depth_encoder_cfg, depth_actor, device=self.device, **self.alg_cfg)
+        self.alg: PPO = alg_class(
+            actor_critic,
+            estimator,
+            self.estimator_cfg,
+            depth_encoder,
+            self.depth_encoder_cfg,
+            depth_actor,
+            device=self.device,
+            **self.alg_cfg,
+        )
         self.num_steps_per_env = self.cfg["num_steps_per_env"]
         self.save_interval = self.cfg["save_interval"]
         self.dagger_update_freq = self.alg_cfg["dagger_update_freq"]
@@ -128,7 +141,9 @@ class OnPolicyRunner:
         # if self.log_dir is not None and self.writer is None:
         #     self.writer = SummaryWriter(log_dir=self.log_dir, flush_secs=10)
         if init_at_random_ep_len:
-            self.env.episode_length_buf = torch.randint_like(self.env.episode_length_buf, high=int(self.env.max_episode_length))
+            self.env.episode_length_buf = torch.randint_like(
+                self.env.episode_length_buf, high=int(self.env.max_episode_length)
+            )
         obs = self.env.get_observations()
         privileged_obs = self.env.get_privileged_observations()
         critic_obs = privileged_obs if privileged_obs is not None else obs
@@ -158,9 +173,16 @@ class OnPolicyRunner:
             with torch.inference_mode():
                 for i in range(self.num_steps_per_env):
                     actions = self.alg.act(obs, critic_obs, infos, hist_encoding)
-                    obs, privileged_obs, rewards, dones, infos = self.env.step(actions)  # obs has changed to next_obs !! if done obs has been reset
+                    obs, privileged_obs, rewards, dones, infos = self.env.step(
+                        actions
+                    )  # obs has changed to next_obs !! if done obs has been reset
                     critic_obs = privileged_obs if privileged_obs is not None else obs
-                    obs, critic_obs, rewards, dones = obs.to(self.device), critic_obs.to(self.device), rewards.to(self.device), dones.to(self.device)
+                    obs, critic_obs, rewards, dones = (
+                        obs.to(self.device),
+                        critic_obs.to(self.device),
+                        rewards.to(self.device),
+                        dones.to(self.device),
+                    )
                     total_rew = self.alg.process_env_step(rewards, dones, infos)
 
                     if self.log_dir is not None:
@@ -191,7 +213,15 @@ class OnPolicyRunner:
                 start = stop
                 self.alg.compute_returns(critic_obs)
 
-            mean_value_loss, mean_surrogate_loss, mean_estimator_loss, mean_disc_loss, mean_disc_acc, mean_priv_reg_loss, priv_reg_coef = self.alg.update()
+            (
+                mean_value_loss,
+                mean_surrogate_loss,
+                mean_estimator_loss,
+                mean_disc_loss,
+                mean_disc_acc,
+                mean_priv_reg_loss,
+                priv_reg_coef,
+            ) = self.alg.update()
             if hist_encoding:
                 print("Updating dagger...")
                 mean_hist_latent_loss = self.alg.update_dagger()
@@ -248,7 +278,9 @@ class OnPolicyRunner:
                     scandots_latent_buffer.append(scandots_latent)
                     obs_prop_depth = obs[:, : self.env.cfg.env.n_proprio].clone()
                     obs_prop_depth[:, 6:8] = 0
-                    depth_latent_and_yaw = self.alg.depth_encoder(infos["depth"].clone(), obs_prop_depth)  # clone is crucial to avoid in-place operation
+                    depth_latent_and_yaw = self.alg.depth_encoder(
+                        infos["depth"].clone(), obs_prop_depth
+                    )  # clone is crucial to avoid in-place operation
 
                     depth_latent = depth_latent_and_yaw[:, :-2]
                     yaw = 1.5 * depth_latent_and_yaw[:, -2:]
@@ -270,11 +302,20 @@ class OnPolicyRunner:
 
                 # detach actions before feeding the env
                 if it < num_pretrain_iter:
-                    obs, privileged_obs, rewards, dones, infos = self.env.step(actions_teacher.detach())  # obs has changed to next_obs !! if done obs has been reset
+                    obs, privileged_obs, rewards, dones, infos = self.env.step(
+                        actions_teacher.detach()
+                    )  # obs has changed to next_obs !! if done obs has been reset
                 else:
-                    obs, privileged_obs, rewards, dones, infos = self.env.step(actions_student.detach())  # obs has changed to next_obs !! if done obs has been reset
+                    obs, privileged_obs, rewards, dones, infos = self.env.step(
+                        actions_student.detach()
+                    )  # obs has changed to next_obs !! if done obs has been reset
                 critic_obs = privileged_obs if privileged_obs is not None else obs
-                obs, critic_obs, rewards, dones = obs.to(self.device), critic_obs.to(self.device), rewards.to(self.device), dones.to(self.device)
+                obs, critic_obs, rewards, dones = (
+                    obs.to(self.device),
+                    critic_obs.to(self.device),
+                    rewards.to(self.device),
+                    dones.to(self.device),
+                )
 
                 if self.log_dir is not None:
                     # Book keeping
@@ -302,7 +343,9 @@ class OnPolicyRunner:
             actions_student_buffer = torch.cat(actions_student_buffer, dim=0)
             yaw_buffer_student = torch.cat(yaw_buffer_student, dim=0)
             yaw_buffer_teacher = torch.cat(yaw_buffer_teacher, dim=0)
-            depth_actor_loss, yaw_loss = self.alg.update_depth_actor(actions_student_buffer, actions_teacher_buffer, yaw_buffer_student, yaw_buffer_teacher)
+            depth_actor_loss, yaw_loss = self.alg.update_depth_actor(
+                actions_student_buffer, actions_teacher_buffer, yaw_buffer_student, yaw_buffer_teacher
+            )
 
             # depth_encoder_loss, depth_actor_loss = self.alg.update_depth_both(depth_latent_buffer, scandots_latent_buffer, actions_student_buffer, actions_teacher_buffer)
             stop = time.time()
@@ -432,7 +475,9 @@ class OnPolicyRunner:
         if len(locs["rewbuffer"]) > 0:
             wandb_dict["Train/mean_reward"] = statistics.mean(locs["rewbuffer"])
             wandb_dict["Train/mean_reward_explr"] = statistics.mean(locs["rew_explr_buffer"])
-            wandb_dict["Train/mean_reward_task"] = wandb_dict["Train/mean_reward"] - wandb_dict["Train/mean_reward_explr"]
+            wandb_dict["Train/mean_reward_task"] = (
+                wandb_dict["Train/mean_reward"] - wandb_dict["Train/mean_reward_explr"]
+            )
             wandb_dict["Train/mean_reward_entropy"] = statistics.mean(locs["rew_entropy_buffer"])
             wandb_dict["Train/mean_episode_length"] = statistics.mean(locs["lenbuffer"])
             # wandb_dict['Train/mean_reward/time', statistics.mean(locs['rewbuffer']), self.tot_time)

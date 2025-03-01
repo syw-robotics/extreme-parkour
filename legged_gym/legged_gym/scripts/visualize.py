@@ -17,7 +17,12 @@ def state_coverage(points, dim1_range=(-5, 5), dim2_range=(0.1, 0.6)):
     # normalize points
     print(points.shape, points[:, 0].min(), points[:, 0].max(), points[:, 1].min(), points[:, 1].max())
 
-    points = np.clip((points - np.array([dim1_range[0], dim2_range[0]])) / np.array([dim1_range[1] - dim1_range[0], dim2_range[1] - dim2_range[0]]), 0, 1)
+    points = np.clip(
+        (points - np.array([dim1_range[0], dim2_range[0]]))
+        / np.array([dim1_range[1] - dim1_range[0], dim2_range[1] - dim2_range[0]]),
+        0,
+        1,
+    )
     bins = np.zeros((num_bins, num_bins))
     for point in points:
         bin1 = min(int(point[0] * num_bins), num_bins - 1)

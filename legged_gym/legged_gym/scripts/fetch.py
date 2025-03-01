@@ -8,14 +8,30 @@ def main(args):
     logs_path_src = f"/home/{args.user}/a1-loco/legged_gym/logs/parkour_new"
     logs_path_dst = "/home/cxx/a1-loco/legged_gym/logs/parkour_new"
 
-    folders = subprocess.check_output(["ssh", f"cxx@{args.server}.pc.cs.cmu.edu", "cd", logs_path_src, "&&", "find", "*", "-maxdepth", "0", "-type", "d"]).decode("utf-8")
+    folders = subprocess.check_output(
+        [
+            "ssh",
+            f"cxx@{args.server}.pc.cs.cmu.edu",
+            "cd",
+            logs_path_src,
+            "&&",
+            "find",
+            "*",
+            "-maxdepth",
+            "0",
+            "-type",
+            "d",
+        ]
+    ).decode("utf-8")
     folder_list = folders.split("\n")
     for name in folder_list:
         if len(name) >= 6:
             if name[:6] == args.exptid:
                 exp_path_src = os.path.join(logs_path_src, name)
                 break
-    models = subprocess.check_output(["ssh", f"cxx@{args.server}.pc.cs.cmu.edu", "cd", exp_path_src, "&&", "find", "*", "-maxdepth", "0"]).decode("utf-8")
+    models = subprocess.check_output(
+        ["ssh", f"cxx@{args.server}.pc.cs.cmu.edu", "cd", exp_path_src, "&&", "find", "*", "-maxdepth", "0"]
+    ).decode("utf-8")
     models = models.split("\n")
     models.sort(key=lambda m: "{0:0>15}".format(m))
     model = models[-1]

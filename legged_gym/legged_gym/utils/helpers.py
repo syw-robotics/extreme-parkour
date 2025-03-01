@@ -188,18 +188,49 @@ def update_cfg_from_args(env_cfg, cfg_train, args):
 
 def get_args():
     custom_parameters = [
-        {"name": "--task", "type": str, "default": "a1", "help": "Resume training or start testing from a checkpoint. Overrides config file if provided."},
+        {
+            "name": "--task",
+            "type": str,
+            "default": "a1",
+            "help": "Resume training or start testing from a checkpoint. Overrides config file if provided.",
+        },
         {"name": "--resume", "action": "store_true", "default": False, "help": "Resume training from a checkpoint"},
-        {"name": "--experiment_name", "type": str, "help": "Name of the experiment to run or load. Overrides config file if provided."},
+        {
+            "name": "--experiment_name",
+            "type": str,
+            "help": "Name of the experiment to run or load. Overrides config file if provided.",
+        },
         {"name": "--run_name", "type": str, "help": "Name of the run. Overrides config file if provided."},
-        {"name": "--load_run", "type": str, "help": "Name of the run to load when resume=True. If -1: will load the last run. Overrides config file if provided."},
-        {"name": "--checkpoint", "type": int, "default": -1, "help": "Saved model checkpoint number. If -1: will load the last checkpoint. Overrides config file if provided."},
+        {
+            "name": "--load_run",
+            "type": str,
+            "help": "Name of the run to load when resume=True. If -1: will load the last run. Overrides config file if provided.",
+        },
+        {
+            "name": "--checkpoint",
+            "type": int,
+            "default": -1,
+            "help": "Saved model checkpoint number. If -1: will load the last checkpoint. Overrides config file if provided.",
+        },
         {"name": "--headless", "action": "store_true", "default": False, "help": "Force display off at all times"},
         {"name": "--horovod", "action": "store_true", "default": False, "help": "Use horovod for multi-gpu training"},
-        {"name": "--rl_device", "type": str, "default": "cuda:0", "help": "Device used by the RL algorithm, (cpu, gpu, cuda:0, cuda:1 etc..)"},
-        {"name": "--num_envs", "type": int, "help": "Number of environments to create. Overrides config file if provided."},
+        {
+            "name": "--rl_device",
+            "type": str,
+            "default": "cuda:0",
+            "help": "Device used by the RL algorithm, (cpu, gpu, cuda:0, cuda:1 etc..)",
+        },
+        {
+            "name": "--num_envs",
+            "type": int,
+            "help": "Number of environments to create. Overrides config file if provided.",
+        },
         {"name": "--seed", "type": int, "help": "Random seed. Overrides config file if provided."},
-        {"name": "--max_iterations", "type": int, "help": "Maximum number of training iterations. Overrides config file if provided."},
+        {
+            "name": "--max_iterations",
+            "type": int,
+            "help": "Maximum number of training iterations. Overrides config file if provided.",
+        },
         {"name": "--device", "type": str, "default": "cuda:0", "help": "Device for sim, rl, and graphics"},
         {"name": "--rows", "type": int, "help": "num_rows."},
         {"name": "--cols", "type": int, "help": "num_cols"},
@@ -300,7 +331,11 @@ def parse_arguments(description="Isaac Gym Example", headless=False, no_graphics
     if headless:
         parser.add_argument("--headless", action="store_true", help="Run headless without creating a viewer window")
     if no_graphics:
-        parser.add_argument("--nographics", action="store_true", help="Disable graphics context creation, no viewer window is created, and no headless rendering is available")
+        parser.add_argument(
+            "--nographics",
+            action="store_true",
+            help="Disable graphics context creation, no viewer window is created, and no headless rendering is available",
+        )
     parser.add_argument("--sim_device", type=str, default="cuda:0", help="Physics Device in PyTorch-like syntax")
     parser.add_argument("--pipeline", type=str, default="gpu", help="Tensor API pipeline (cpu/gpu)")
     parser.add_argument("--graphics_device_id", type=int, default=0, help="Graphics Device ID")
@@ -321,7 +356,9 @@ def parse_arguments(description="Isaac Gym Example", headless=False, no_graphics
 
             if "type" in argument:
                 if "default" in argument:
-                    parser.add_argument(argument["name"], type=argument["type"], default=argument["default"], help=help_str)
+                    parser.add_argument(
+                        argument["name"], type=argument["type"], default=argument["default"], help=help_str
+                    )
                 else:
                     parser.add_argument(argument["name"], type=argument["type"], help=help_str)
             elif "action" in argument:
@@ -341,7 +378,10 @@ def parse_arguments(description="Isaac Gym Example", headless=False, no_graphics
     args.sim_device_type, args.compute_device_id = parse_device_str(args.sim_device)
     pipeline = args.pipeline.lower()
 
-    assert pipeline == "cpu" or pipeline in ("gpu", "cuda"), f"Invalid pipeline '{args.pipeline}'. Should be either cpu or gpu."
+    assert pipeline == "cpu" or pipeline in (
+        "gpu",
+        "cuda",
+    ), f"Invalid pipeline '{args.pipeline}'. Should be either cpu or gpu."
     args.use_gpu_pipeline = pipeline in ("gpu", "cuda")
 
     if args.sim_device_type != "cuda" and args.flex:

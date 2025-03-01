@@ -49,7 +49,9 @@ class LeggedRobotCfg(BaseConfig):
         n_proprio = 3 + 2 + 3 + 4 + 36 + 5
         history_len = 10
 
-        num_observations = n_proprio + n_scan + history_len * n_proprio + n_priv_latent + n_priv  # n_scan + n_proprio + n_priv #187 + 47 + 5 + 12
+        num_observations = (
+            n_proprio + n_scan + history_len * n_proprio + n_priv_latent + n_priv
+        )  # n_scan + n_proprio + n_priv #187 + 47 + 5 + 12
         num_privileged_obs = None  # if not None a priviledge_obs_buf will be returned by step() (critic obs for assymetric training). None is returned otherwise
         num_actions = 12
         env_spacing = 3.0  # not used with heightfields/trimeshes
@@ -159,7 +161,20 @@ class LeggedRobotCfg(BaseConfig):
         dynamic_friction = 1.0
         restitution = 0.0
         measure_heights = True
-        measured_points_x = [-0.45, -0.3, -0.15, 0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.05, 1.2]  # 1mx1.6m rectangle (without center line)
+        measured_points_x = [
+            -0.45,
+            -0.3,
+            -0.15,
+            0,
+            0.15,
+            0.3,
+            0.45,
+            0.6,
+            0.75,
+            0.9,
+            1.05,
+            1.2,
+        ]  # 1mx1.6m rectangle (without center line)
         measured_points_y = [-0.75, -0.6, -0.45, -0.3, -0.15, 0.0, 0.15, 0.3, 0.45, 0.6, 0.75]
         measure_horizontal_noise = 0.0
 
@@ -260,7 +275,9 @@ class LeggedRobotCfg(BaseConfig):
         fix_base_link = False  # fixe the base of the robot
         default_dof_drive_mode = 3  # see GymDofDriveModeFlags (0 is none, 1 is pos tgt, 2 is vel tgt, 3 effort)
         self_collisions = 0  # 1 to disable, 0 to enable...bitwise filter
-        replace_cylinder_with_capsule = True  # replace collision cylinders with capsules, leads to faster/more stable simulation
+        replace_cylinder_with_capsule = (
+            True  # replace collision cylinders with capsules, leads to faster/more stable simulation
+        )
         flip_visual_attachments = True  # Some .obj meshes must be flipped from y-up to z-up
 
         density = 0.001
@@ -311,7 +328,9 @@ class LeggedRobotCfg(BaseConfig):
             feet_stumble = -1
             feet_edge = -1
 
-        only_positive_rewards = True  # if true negative total rewards are clipped at zero (avoids early termination problems)
+        only_positive_rewards = (
+            True  # if true negative total rewards are clipped at zero (avoids early termination problems)
+        )
         tracking_sigma = 0.2  # tracking reward = exp(-error^2/sigma)
         soft_dof_pos_limit = 1.0  # percentage of urdf limits, values above this limit are penalized
         soft_dof_vel_limit = 1

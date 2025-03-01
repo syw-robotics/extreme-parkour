@@ -39,7 +39,9 @@ class ObsStorage:
         mini_batch_size = batch_size // num_mini_batches
 
         for batch_id in range(num_mini_batches):
-            yield self.obs.view(-1, *self.obs.size()[2:])[batch_id * mini_batch_size : (batch_id + 1) * mini_batch_size], self.expert.view(-1, *self.expert.size()[2:])[
+            yield self.obs.view(-1, *self.obs.size()[2:])[
+                batch_id * mini_batch_size : (batch_id + 1) * mini_batch_size
+            ], self.expert.view(-1, *self.expert.size()[2:])[
                 batch_id * mini_batch_size : (batch_id + 1) * mini_batch_size
             ]
 
@@ -120,9 +122,13 @@ class RolloutStorage:
         mini_batch_size = batch_size // num_mini_batches
 
         for batch_id in range(num_mini_batches):
-            yield self.actor_obs.view(-1, *self.actor_obs.size()[2:])[batch_id * mini_batch_size : (batch_id + 1) * mini_batch_size], self.critic_obs.view(
-                -1, *self.critic_obs.size()[2:]
-            )[batch_id * mini_batch_size : (batch_id + 1) * mini_batch_size], self.actions.view(-1, self.actions.size(-1))[
+            yield self.actor_obs.view(-1, *self.actor_obs.size()[2:])[
+                batch_id * mini_batch_size : (batch_id + 1) * mini_batch_size
+            ], self.critic_obs.view(-1, *self.critic_obs.size()[2:])[
+                batch_id * mini_batch_size : (batch_id + 1) * mini_batch_size
+            ], self.actions.view(
+                -1, self.actions.size(-1)
+            )[
                 batch_id * mini_batch_size : (batch_id + 1) * mini_batch_size
             ], self.values.view(
                 -1, 1

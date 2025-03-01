@@ -72,7 +72,9 @@ class WebViewer:
         self._event_stream_depth = threading.Event()
 
         # start server
-        self._thread = threading.Thread(target=lambda: self._app.run(host=host, port=port, debug=False, use_reloader=False), daemon=True)
+        self._thread = threading.Thread(
+            target=lambda: self._app.run(host=host, port=port, debug=False, use_reloader=False), daemon=True
+        )
         self._thread.start()
         print(f"\nStarting web viewer on http://{host}:{port}/\n")
 
@@ -82,7 +84,9 @@ class WebViewer:
         :return: Flask response
         :rtype: flask.Response
         """
-        with open(os.path.join(LEGGED_GYM_ROOT_DIR, "legged_gym", "utils", "webviewer.html"), "r", encoding="utf-8") as file:
+        with open(
+            os.path.join(LEGGED_GYM_ROOT_DIR, "legged_gym", "utils", "webviewer.html"), "r", encoding="utf-8"
+        ) as file:
             template = file.read()
         self._event_load.set()
         return flask.render_template_string(template)
@@ -105,7 +109,9 @@ class WebViewer:
         key, mouse = data.get("key", None), data.get("mouse", None)
         dx, dy, dz = data.get("dx", None), data.get("dy", None), data.get("dz", None)
 
-        transform = self._gym.get_camera_transform(self._sim, self._envs[self._camera_id], self._cameras[self._camera_id])
+        transform = self._gym.get_camera_transform(
+            self._sim, self._envs[self._camera_id], self._cameras[self._camera_id]
+        )
 
         # zoom in/out
         if mouse == "wheel":
@@ -228,7 +234,13 @@ class WebViewer:
             root_pos = self._env.root_states[i, :3].cpu().numpy()
             self.attach_view_camera(i, self._envs[i], self._env.actor_handles[i], root_pos)
 
-    def render(self, fetch_results: bool = True, step_graphics: bool = True, render_all_camera_sensors: bool = True, wait_for_page_load: bool = True) -> None:
+    def render(
+        self,
+        fetch_results: bool = True,
+        step_graphics: bool = True,
+        render_all_camera_sensors: bool = True,
+        wait_for_page_load: bool = True,
+    ) -> None:
         """Render and get the image from the current camera
 
         This function must be called after the simulation is stepped (post_physics_step).
@@ -273,7 +285,9 @@ class WebViewer:
             self._gym.render_all_camera_sensors(self._sim)
 
         # get image
-        image = self._gym.get_camera_image(self._sim, self._envs[self._camera_id], self._cameras[self._camera_id], self._camera_type)
+        image = self._gym.get_camera_image(
+            self._sim, self._envs[self._camera_id], self._cameras[self._camera_id], self._camera_type
+        )
         if self._camera_type == gymapi.IMAGE_COLOR:
             self._image = image.reshape(image.shape[0], -1, 4)[..., :3]
         elif self._camera_type == gymapi.IMAGE_DEPTH:
@@ -291,7 +305,9 @@ class WebViewer:
 
         root_pos = self._env.root_states[self._camera_id, :3].cpu().numpy()
         cam_pos = root_pos + self.cam_pos_rel
-        self._gym.set_camera_location(self._cameras[self._camera_id], self._envs[self._camera_id], gymapi.Vec3(*cam_pos), gymapi.Vec3(*root_pos))
+        self._gym.set_camera_location(
+            self._cameras[self._camera_id], self._envs[self._camera_id], gymapi.Vec3(*cam_pos), gymapi.Vec3(*root_pos)
+        )
 
         # notify stream thread
         self._event_stream.set()
@@ -335,7 +351,11 @@ def ik(
 
     # compute error
     q = torch_utils.quat_mul(goal_orientation, torch_utils.quat_conjugate(current_orientation))
-    error = torch.cat([goal_position - current_position, q[:, 0:3] * torch.sign(q[:, 3]).unsqueeze(-1)], dim=-1).unsqueeze(-1)  # position error  # orientation error
+    error = torch.cat(
+        [goal_position - current_position, q[:, 0:3] * torch.sign(q[:, 3]).unsqueeze(-1)], dim=-1
+    ).unsqueeze(
+        -1
+    )  # position error  # orientation error
 
     # solve damped least squares (dO = J.T * V)
     transpose = torch.transpose(jacobian_end_effector, 1, 2)
@@ -401,7 +421,16 @@ def print_asset_options(asset_options: "isaacgym.gymapi.AssetOptions", asset_nam
             ]
             print("  |-- vhacd_params:")
             for vhacd_attr in vhacd_attrs:
-                print("  |   |-- {}: {}".format(vhacd_attr, getattr(asset_options.vhacd_params, vhacd_attr) if hasattr(asset_options.vhacd_params, vhacd_attr) else "--"))
+                print(
+                    "  |   |-- {}: {}".format(
+                        vhacd_attr,
+                        (
+                            getattr(asset_options.vhacd_params, vhacd_attr)
+                            if hasattr(asset_options.vhacd_params, vhacd_attr)
+                            else "--"
+                        ),
+                    )
+                )
 
 
 def print_sim_components(gym, sim):

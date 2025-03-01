@@ -75,7 +75,9 @@ class BaseTask:
         self.episode_length_buf = torch.zeros(self.num_envs, device=self.device, dtype=torch.long)
         self.time_out_buf = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)
         if self.num_privileged_obs is not None:
-            self.privileged_obs_buf = torch.zeros(self.num_envs, self.num_privileged_obs, device=self.device, dtype=torch.float)
+            self.privileged_obs_buf = torch.zeros(
+                self.num_envs, self.num_privileged_obs, device=self.device, dtype=torch.float
+            )
         else:
             self.privileged_obs_buf = None
             # self.num_privileged_obs = self.num_obs
@@ -98,7 +100,9 @@ class BaseTask:
             self.gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_V, "toggle_viewer_sync")
             self.gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_F, "free_cam")
             for i in range(9):
-                self.gym.subscribe_viewer_keyboard_event(self.viewer, getattr(gymapi, "KEY_" + str(i)), "lookat" + str(i))
+                self.gym.subscribe_viewer_keyboard_event(
+                    self.viewer, getattr(gymapi, "KEY_" + str(i)), "lookat" + str(i)
+                )
             self.gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_LEFT_BRACKET, "prev_id")
             self.gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_RIGHT_BRACKET, "next_id")
             self.gym.subscribe_viewer_keyboard_event(self.viewer, gymapi.KEY_SPACE, "pause")
@@ -123,7 +127,9 @@ class BaseTask:
     def reset(self):
         """Reset all robots"""
         self.reset_idx(torch.arange(self.num_envs, device=self.device))
-        obs, privileged_obs, _, _, _ = self.step(torch.zeros(self.num_envs, self.num_actions, device=self.device, requires_grad=False))
+        obs, privileged_obs, _, _, _ = self.step(
+            torch.zeros(self.num_envs, self.num_actions, device=self.device, requires_grad=False)
+        )
         return obs, privileged_obs
 
     def step(self, actions):

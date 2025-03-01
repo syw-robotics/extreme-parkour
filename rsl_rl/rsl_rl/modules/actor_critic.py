@@ -183,7 +183,9 @@ class Actor(nn.Module):
                 obs_prop_scan = torch.cat([obs[:, : self.num_prop], scan_latent], dim=1)
             else:
                 obs_prop_scan = obs[:, : self.num_prop + self.num_scan]
-            obs_priv_explicit = obs[:, self.num_prop + self.num_scan : self.num_prop + self.num_scan + self.num_priv_explicit]
+            obs_priv_explicit = obs[
+                :, self.num_prop + self.num_scan : self.num_prop + self.num_scan + self.num_priv_explicit
+            ]
             if hist_encoding:
                 latent = self.infer_hist_latent(obs)
             else:
@@ -201,7 +203,9 @@ class Actor(nn.Module):
                 obs_prop_scan = torch.cat([obs[:, : self.num_prop], scan_latent], dim=1)
             else:
                 obs_prop_scan = obs[:, : self.num_prop + self.num_scan]
-            obs_priv_explicit = obs[:, self.num_prop + self.num_scan : self.num_prop + self.num_scan + self.num_priv_explicit]
+            obs_priv_explicit = obs[
+                :, self.num_prop + self.num_scan : self.num_prop + self.num_scan + self.num_priv_explicit
+            ]
             if hist_encoding:
                 latent = self.infer_hist_latent(obs)
             else:
@@ -213,7 +217,12 @@ class Actor(nn.Module):
     def infer_priv_latent(self, obs):
         priv = obs[
             :,
-            self.num_prop + self.num_scan + self.num_priv_explicit : self.num_prop + self.num_scan + self.num_priv_explicit + self.num_priv_latent,
+            self.num_prop
+            + self.num_scan
+            + self.num_priv_explicit : self.num_prop
+            + self.num_scan
+            + self.num_priv_explicit
+            + self.num_priv_latent,
         ]
         return self.priv_encoder(priv)
 
@@ -246,7 +255,10 @@ class ActorCriticRMA(nn.Module):
         **kwargs
     ):
         if kwargs:
-            print("ActorCritic.__init__ got unexpected arguments, which will be ignored: " + str([key for key in kwargs.keys()]))
+            print(
+                "ActorCritic.__init__ got unexpected arguments, which will be ignored: "
+                + str([key for key in kwargs.keys()])
+            )
         super(ActorCriticRMA, self).__init__()
 
         self.kwargs = kwargs
@@ -292,7 +304,10 @@ class ActorCriticRMA(nn.Module):
     @staticmethod
     # not used at the moment
     def init_weights(sequential, scales):
-        [torch.nn.init.orthogonal_(module.weight, gain=scales[idx]) for idx, module in enumerate(mod for mod in sequential if isinstance(mod, nn.Linear))]
+        [
+            torch.nn.init.orthogonal_(module.weight, gain=scales[idx])
+            for idx, module in enumerate(mod for mod in sequential if isinstance(mod, nn.Linear))
+        ]
 
     def reset(self, dones=None):
         pass

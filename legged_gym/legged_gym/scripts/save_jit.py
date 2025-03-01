@@ -79,7 +79,9 @@ class HardwareVisionNN(nn.Module):
         self.estimator = Estimator(input_dim=num_prop, output_dim=num_priv_explicit, hidden_dims=[128, 64])
 
     def forward(self, obs, depth_latent):
-        obs[:, self.num_prop + self.num_scan : self.num_prop + self.num_scan + self.num_priv_explicit] = self.estimator(obs[:, : self.num_prop])
+        obs[:, self.num_prop + self.num_scan : self.num_prop + self.num_scan + self.num_priv_explicit] = self.estimator(
+            obs[:, : self.num_prop]
+        )
         return self.actor(obs, hist_encoding=True, eval=False, scandots_latent=depth_latent)
         # return obs, depth_latent
 
@@ -100,7 +102,9 @@ def play(args):
     history_len = 10
 
     device = torch.device("cpu")
-    policy = HardwareVisionNN(n_proprio, num_scan, n_priv_latent, n_priv_explicit, history_len, num_actions, args.tanh).to(device)
+    policy = HardwareVisionNN(
+        n_proprio, num_scan, n_priv_latent, n_priv_explicit, history_len, num_actions, args.tanh
+    ).to(device)
     load_path, checkpoint = get_load_path(root=load_run, checkpoint=checkpoint)
     load_run = os.path.dirname(load_path)
     print(f"Loading model from: {load_path}")
@@ -120,7 +124,9 @@ def play(args):
     with torch.no_grad():
         num_envs = 1
 
-        obs_input = torch.ones(num_envs, n_proprio + num_scan + n_priv_explicit + n_priv_latent + history_len * n_proprio, device=device)
+        obs_input = torch.ones(
+            num_envs, n_proprio + num_scan + n_priv_explicit + n_priv_latent + history_len * n_proprio, device=device
+        )
         depth_latent = torch.ones(1, 32, device=device)
         test = policy(obs_input, depth_latent)
 

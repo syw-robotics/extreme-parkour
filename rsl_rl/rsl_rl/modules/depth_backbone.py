@@ -13,7 +13,9 @@ class RecurrentDepthBackbone(nn.Module):
         if env_cfg == None:
             self.combination_mlp = nn.Sequential(nn.Linear(32 + 53, 128), activation, nn.Linear(128, 32))
         else:
-            self.combination_mlp = nn.Sequential(nn.Linear(32 + env_cfg.env.n_proprio, 128), activation, nn.Linear(128, 32))
+            self.combination_mlp = nn.Sequential(
+                nn.Linear(32 + env_cfg.env.n_proprio, 128), activation, nn.Linear(128, 32)
+            )
         self.rnn = nn.GRU(input_size=32, hidden_size=512, batch_first=True)
         self.output_mlp = nn.Sequential(nn.Linear(512, 32 + 2), last_activation)
         self.hidden_states = None
@@ -39,7 +41,9 @@ class StackDepthEncoder(nn.Module):
         self.combination_mlp = nn.Sequential(nn.Linear(32 + env_cfg.env.n_proprio, 128), activation, nn.Linear(128, 32))
 
         self.conv1d = nn.Sequential(
-            nn.Conv1d(in_channels=env_cfg.depth.buffer_len, out_channels=16, kernel_size=4, stride=2),  # (30 - 4) / 2 + 1 = 14,
+            nn.Conv1d(
+                in_channels=env_cfg.depth.buffer_len, out_channels=16, kernel_size=4, stride=2
+            ),  # (30 - 4) / 2 + 1 = 14,
             activation,
             nn.Conv1d(in_channels=16, out_channels=16, kernel_size=2),  # 14-2+1 = 13,
             activation,

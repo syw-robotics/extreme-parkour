@@ -96,10 +96,18 @@ class TaskRegistry:
         # parse sim params (convert to dict first)
         sim_params = {"sim": class_to_dict(env_cfg.sim)}
         sim_params = parse_sim_params(args, sim_params)
-        env = task_class(cfg=env_cfg, sim_params=sim_params, physics_engine=args.physics_engine, sim_device=args.sim_device, headless=args.headless)
+        env = task_class(
+            cfg=env_cfg,
+            sim_params=sim_params,
+            physics_engine=args.physics_engine,
+            sim_device=args.sim_device,
+            headless=args.headless,
+        )
         return env, env_cfg
 
-    def make_alg_runner(self, env, name=None, args=None, train_cfg=None, init_wandb=True, log_root="default", **kwargs) -> Tuple[OnPolicyRunner, LeggedRobotCfgPPO]:
+    def make_alg_runner(
+        self, env, name=None, args=None, train_cfg=None, init_wandb=True, log_root="default", **kwargs
+    ) -> Tuple[OnPolicyRunner, LeggedRobotCfgPPO]:
         """Creates the training algorithm  either from a registered namme or from the provided config file.
 
         Args:
@@ -153,7 +161,9 @@ class TaskRegistry:
             print(log_root)
             print(train_cfg.runner.load_run)
             # load_root = os.path.join(LEGGED_GYM_ROOT_DIR, 'logs', "rough_a1", train_cfg.runner.load_run)
-            resume_path = get_load_path(log_root, load_run=train_cfg.runner.load_run, checkpoint=train_cfg.runner.checkpoint)
+            resume_path = get_load_path(
+                log_root, load_run=train_cfg.runner.load_run, checkpoint=train_cfg.runner.checkpoint
+            )
             runner.load(resume_path)
             if not train_cfg.policy.continue_from_last_std:
                 runner.alg.actor_critic.reset_std(train_cfg.policy.init_noise_std, 12, device=runner.device)

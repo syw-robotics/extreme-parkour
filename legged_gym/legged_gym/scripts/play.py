@@ -120,7 +120,9 @@ def play(args):
 
     # load policy
     train_cfg.runner.resume = True
-    ppo_runner, train_cfg, log_pth = task_registry.make_alg_runner(log_root=log_pth, env=env, name=args.task, args=args, train_cfg=train_cfg, return_log_dir=True)
+    ppo_runner, train_cfg, log_pth = task_registry.make_alg_runner(
+        log_root=log_pth, env=env, name=args.task, args=args, train_cfg=train_cfg, return_log_dir=True
+    )
 
     if args.use_jit:
         path = os.path.join(log_pth, "traced")
@@ -148,7 +150,13 @@ def play(args):
                     depth_buffer = torch.ones((env_cfg.env.num_envs, 58, 87), device=env.device)
                     actions, depth_latent = policy_jit(obs.detach(), False, depth_buffer, depth_latent)
             else:
-                obs_jit = torch.cat((obs.detach()[:, : env_cfg.env.n_proprio + env_cfg.env.n_priv], obs.detach()[:, -env_cfg.env.history_len * env_cfg.env.n_proprio :]), dim=1)
+                obs_jit = torch.cat(
+                    (
+                        obs.detach()[:, : env_cfg.env.n_proprio + env_cfg.env.n_priv],
+                        obs.detach()[:, -env_cfg.env.history_len * env_cfg.env.n_proprio :],
+                    ),
+                    dim=1,
+                )
                 actions = policy(obs_jit)
         else:
             if env.cfg.depth.use_camera:
@@ -170,7 +178,9 @@ def play(args):
 
         obs, _, rews, dones, infos = env.step(actions.detach())
         if args.web:
-            web_viewer.render(fetch_results=True, step_graphics=True, render_all_camera_sensors=True, wait_for_page_load=True)
+            web_viewer.render(
+                fetch_results=True, step_graphics=True, render_all_camera_sensors=True, wait_for_page_load=True
+            )
         print(
             "time:",
             env.episode_length_buf[env.lookat_id].item() / 50,

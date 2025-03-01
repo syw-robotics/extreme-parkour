@@ -127,13 +127,20 @@ class PPO:
         self.if_depth = depth_encoder != None
         if self.if_depth:
             self.depth_encoder = depth_encoder
-            self.depth_encoder_optimizer = optim.Adam(self.depth_encoder.parameters(), lr=depth_encoder_paras["learning_rate"])
+            self.depth_encoder_optimizer = optim.Adam(
+                self.depth_encoder.parameters(), lr=depth_encoder_paras["learning_rate"]
+            )
             self.depth_encoder_paras = depth_encoder_paras
             self.depth_actor = depth_actor
-            self.depth_actor_optimizer = optim.Adam([*self.depth_actor.parameters(), *self.depth_encoder.parameters()], lr=depth_encoder_paras["learning_rate"])
+            self.depth_actor_optimizer = optim.Adam(
+                [*self.depth_actor.parameters(), *self.depth_encoder.parameters()],
+                lr=depth_encoder_paras["learning_rate"],
+            )
 
     def init_storage(self, num_envs, num_transitions_per_env, actor_obs_shape, critic_obs_shape, action_shape):
-        self.storage = RolloutStorage(num_envs, num_transitions_per_env, actor_obs_shape, critic_obs_shape, action_shape, self.device)
+        self.storage = RolloutStorage(
+            num_envs, num_transitions_per_env, actor_obs_shape, critic_obs_shape, action_shape, self.device
+        )
 
     def test_mode(self):
         self.actor_critic.test()
@@ -148,7 +155,9 @@ class PPO:
         if self.train_with_estimated_states:
             obs_est = obs.clone()
             priv_states_estimated = self.estimator(obs_est[:, : self.num_prop])
-            obs_est[:, self.num_prop + self.num_scan : self.num_prop + self.num_scan + self.priv_states_dim] = priv_states_estimated
+            obs_est[:, self.num_prop + self.num_scan : self.num_prop + self.num_scan + self.priv_states_dim] = (
+                priv_states_estimated
+            )
             self.transition.actions = self.actor_critic.act(obs_est, hist_encoding).detach()
         else:
             self.transition.actions = self.actor_critic.act(obs, hist_encoding).detach()
@@ -169,7 +178,9 @@ class PPO:
         self.transition.dones = dones
         # Bootstrapping on time outs
         if "time_outs" in infos:
-            self.transition.rewards += self.gamma * torch.squeeze(self.transition.values * infos["time_outs"].unsqueeze(1).to(self.device), 1)
+            self.transition.rewards += self.gamma * torch.squeeze(
+                self.transition.values * infos["time_outs"].unsqueeze(1).to(self.device), 1
+            )
 
         # Record the transition
         self.storage.add_transitions(self.transition)
@@ -207,10 +218,14 @@ class PPO:
             masks_batch,
         ) in generator:
 
-            self.actor_critic.act(obs_batch, masks=masks_batch, hidden_states=hid_states_batch[0])  # match distribution dimension
+            self.actor_critic.act(
+                obs_batch, masks=masks_batch, hidden_states=hid_states_batch[0]
+            )  # match distribution dimension
 
             actions_log_prob_batch = self.actor_critic.get_actions_log_prob(actions_batch)
-            value_batch = self.actor_critic.evaluate(critic_obs_batch, masks=masks_batch, hidden_states=hid_states_batch[1])
+            value_batch = self.actor_critic.evaluate(
+                critic_obs_batch, masks=masks_batch, hidden_states=hid_states_batch[1]
+            )
             mu_batch = self.actor_critic.action_mean
             sigma_batch = self.actor_critic.action_std
             entropy_batch = self.actor_critic.entropy
@@ -220,12 +235,26 @@ class PPO:
             with torch.inference_mode():
                 hist_latent_batch = self.actor_critic.actor.infer_hist_latent(obs_batch)
             priv_reg_loss = (priv_latent_batch - hist_latent_batch.detach()).norm(p=2, dim=1).mean()
-            priv_reg_stage = min(max((self.counter - self.priv_reg_coef_schedual[2]), 0) / self.priv_reg_coef_schedual[3], 1)
-            priv_reg_coef = priv_reg_stage * (self.priv_reg_coef_schedual[1] - self.priv_reg_coef_schedual[0]) + self.priv_reg_coef_schedual[0]
+            priv_reg_stage = min(
+                max((self.counter - self.priv_reg_coef_schedual[2]), 0) / self.priv_reg_coef_schedual[3], 1
+            )
+            priv_reg_coef = (
+                priv_reg_stage * (self.priv_reg_coef_schedual[1] - self.priv_reg_coef_schedual[0])
+                + self.priv_reg_coef_schedual[0]
+            )
 
             # Estimator
-            priv_states_predicted = self.estimator(obs_batch[:, : self.num_prop])  # obs in batch is with true priv_states
-            estimator_loss = (priv_states_predicted - obs_batch[:, self.num_prop + self.num_scan : self.num_prop + self.num_scan + self.priv_states_dim]).pow(2).mean()
+            priv_states_predicted = self.estimator(
+                obs_batch[:, : self.num_prop]
+            )  # obs in batch is with true priv_states
+            estimator_loss = (
+                (
+                    priv_states_predicted
+                    - obs_batch[:, self.num_prop + self.num_scan : self.num_prop + self.num_scan + self.priv_states_dim]
+                )
+                .pow(2)
+                .mean()
+            )
             self.estimator_optimizer.zero_grad()
             estimator_loss.backward()
             nn.utils.clip_grad_norm_(self.estimator.parameters(), self.max_grad_norm)
@@ -236,7 +265,8 @@ class PPO:
                 with torch.inference_mode():
                     kl = torch.sum(
                         torch.log(sigma_batch / old_sigma_batch + 1.0e-5)
-                        + (torch.square(old_sigma_batch) + torch.square(old_mu_batch - mu_batch)) / (2.0 * torch.square(sigma_batch))
+                        + (torch.square(old_sigma_batch) + torch.square(old_mu_batch - mu_batch))
+                        / (2.0 * torch.square(sigma_batch))
                         - 0.5,
                         axis=-1,
                     )
@@ -253,19 +283,28 @@ class PPO:
             # Surrogate loss
             ratio = torch.exp(actions_log_prob_batch - torch.squeeze(old_actions_log_prob_batch))
             surrogate = -torch.squeeze(advantages_batch) * ratio
-            surrogate_clipped = -torch.squeeze(advantages_batch) * torch.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param)
+            surrogate_clipped = -torch.squeeze(advantages_batch) * torch.clamp(
+                ratio, 1.0 - self.clip_param, 1.0 + self.clip_param
+            )
             surrogate_loss = torch.max(surrogate, surrogate_clipped).mean()
 
             # Value function loss
             if self.use_clipped_value_loss:
-                value_clipped = target_values_batch + (value_batch - target_values_batch).clamp(-self.clip_param, self.clip_param)
+                value_clipped = target_values_batch + (value_batch - target_values_batch).clamp(
+                    -self.clip_param, self.clip_param
+                )
                 value_losses = (value_batch - returns_batch).pow(2)
                 value_losses_clipped = (value_clipped - returns_batch).pow(2)
                 value_loss = torch.max(value_losses, value_losses_clipped).mean()
             else:
                 value_loss = (returns_batch - value_batch).pow(2).mean()
 
-            loss = surrogate_loss + self.value_loss_coef * value_loss - self.entropy_coef * entropy_batch.mean() + priv_reg_coef * priv_reg_loss
+            loss = (
+                surrogate_loss
+                + self.value_loss_coef * value_loss
+                - self.entropy_coef * entropy_batch.mean()
+                + priv_reg_coef * priv_reg_loss
+            )
             # loss = self.teacher_alpha * imitation_loss + (1 - self.teacher_alpha) * loss
 
             # Gradient step
@@ -290,7 +329,15 @@ class PPO:
         mean_discriminator_acc /= num_updates
         self.storage.clear()
         self.update_counter()
-        return mean_value_loss, mean_surrogate_loss, mean_estimator_loss, mean_discriminator_loss, mean_discriminator_acc, mean_priv_reg_loss, priv_reg_coef
+        return (
+            mean_value_loss,
+            mean_surrogate_loss,
+            mean_estimator_loss,
+            mean_discriminator_loss,
+            mean_discriminator_acc,
+            mean_priv_reg_loss,
+            priv_reg_coef,
+        )
 
     def update_dagger(self):
         mean_hist_latent_loss = 0
@@ -312,7 +359,9 @@ class PPO:
             masks_batch,
         ) in generator:
             with torch.inference_mode():
-                self.actor_critic.act(obs_batch, hist_encoding=True, masks=masks_batch, hidden_states=hid_states_batch[0])
+                self.actor_critic.act(
+                    obs_batch, hist_encoding=True, masks=masks_batch, hidden_states=hid_states_batch[0]
+                )
 
             # Adaptation module update
             with torch.inference_mode():
@@ -356,7 +405,9 @@ class PPO:
             self.depth_actor_optimizer.step()
             return depth_actor_loss.item(), yaw_loss.item()
 
-    def update_depth_both(self, depth_latent_batch, scandots_latent_batch, actions_student_batch, actions_teacher_batch):
+    def update_depth_both(
+        self, depth_latent_batch, scandots_latent_batch, actions_student_batch, actions_teacher_batch
+    ):
         if self.if_depth:
             depth_encoder_loss = (scandots_latent_batch.detach() - depth_latent_batch).norm(p=2, dim=1).mean()
             depth_actor_loss = (actions_teacher_batch.detach() - actions_student_batch).norm(p=2, dim=1).mean()
@@ -365,7 +416,9 @@ class PPO:
 
             self.depth_actor_optimizer.zero_grad()
             depth_loss.backward()
-            nn.utils.clip_grad_norm_([*self.depth_actor.parameters(), *self.depth_encoder.parameters()], self.max_grad_norm)
+            nn.utils.clip_grad_norm_(
+                [*self.depth_actor.parameters(), *self.depth_encoder.parameters()], self.max_grad_norm
+            )
             self.depth_actor_optimizer.step()
             return depth_encoder_loss.item(), depth_actor_loss.item()
 

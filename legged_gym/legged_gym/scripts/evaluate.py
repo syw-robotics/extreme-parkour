@@ -126,7 +126,9 @@ def play(args):
 
     # load policy
     train_cfg.runner.resume = True
-    ppo_runner, train_cfg, log_pth = task_registry.make_alg_runner(log_root=log_pth, env=env, name=args.task, args=args, train_cfg=train_cfg, return_log_dir=True)
+    ppo_runner, train_cfg, log_pth = task_registry.make_alg_runner(
+        log_root=log_pth, env=env, name=args.task, args=args, train_cfg=train_cfg, return_log_dir=True
+    )
 
     policy = ppo_runner.get_inference_policy(device=env.device)
     if env.cfg.depth.use_camera:
@@ -172,7 +174,9 @@ def play(args):
         cur_goal_idx = env.cur_goal_idx.clone()
         obs, _, rews, dones, infos = env.step(actions.detach())
         if args.web:
-            web_viewer.render(fetch_results=True, step_graphics=True, render_all_camera_sensors=True, wait_for_page_load=True)
+            web_viewer.render(
+                fetch_results=True, step_graphics=True, render_all_camera_sensors=True, wait_for_page_load=True
+            )
 
         id = env.lookat_id
         # Log stuff
